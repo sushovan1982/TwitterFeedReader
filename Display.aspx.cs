@@ -81,7 +81,7 @@ public partial class Display : System.Web.UI.Page
         }
         else
         {
-            Session["Error"] = "No tweet found for user";
+            Session["Error"] = "No tweet found for user @salesforce";
             Response.Redirect("ErrorPage.aspx");
         }
     }
