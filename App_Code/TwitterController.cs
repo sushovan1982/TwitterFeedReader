@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -19,17 +19,17 @@ public class TwitterController : ApiController
             //Fetching access token for accessing Twitter API 
             accessToken = GetAccessToken();
             //This is for workaround to handle response JSON problem
-            //Last 3-4 tweets are not returning entities->expanded_url which is responsible for getting the tweet image
-            //So, increasing the target tweet count by 5, later last 5 tweets will be discarded
-            count = count + 5;
+            //Last 3-6 tweets are not returning entities->expanded_url which is responsible for getting the tweet image
+            //So, increasing the target tweet count by 10, later last 10 tweets will be discarded
+            count = count + 10;
             //GET request to Twitter API
             var requestUserTimeline = new HttpRequestMessage(HttpMethod.Get, string.Format("https://api.twitter.com/1.1/statuses/user_timeline.json?count={0}&screen_name={1}&trim_user=0&exclude_replies=0", count, userName));
 
             requestUserTimeline.Headers.Add("Authorization", "Bearer " + accessToken);
             var httpClient = new HttpClient();
-            HttpResponseMessage responseUserTimeLine = httpClient.SendAsync(requestUserTimeline).GetAwaiter().GetResult();//Avoiding asynchronous call
+            HttpResponseMessage responseUserTimeLine = httpClient.SendAsync(requestUserTimeline).GetAwaiter().GetResult();//Avoiding asynchronous call and allowing request to complete
             var serializer = new JavaScriptSerializer();
-            dynamic json = serializer.Deserialize<object>(responseUserTimeLine.Content.ReadAsStringAsync().GetAwaiter().GetResult());//Avoiding asynchronous call
+            dynamic json = serializer.Deserialize<object>(responseUserTimeLine.Content.ReadAsStringAsync().GetAwaiter().GetResult());//Avoiding asynchronous call and allowing request to complete
             var enumerableTwitts = (json as IEnumerable<dynamic>);
 
             if (enumerableTwitts == null)
@@ -37,11 +37,11 @@ public class TwitterController : ApiController
                 return null;
             }
             //If IEnumerable received JSON object, filter it for each target fields
-            var tweetText = enumerableTwitts.Select(t => (string)(t["text"].ToString()));
-            var tweetContent = enumerableTwitts.Select(t => (Dictionary<string, object>)(t["entities"]) as Dictionary<string, object>);
+            var tweetText = enumerableTwitts.Select(t => (string)(t["text"].ToString()));          
             var retweetCount = enumerableTwitts.Select(t => (int)(t["retweet_count"]));
             var tweetDate = enumerableTwitts.Select(t => (string)(t["created_at"]));
             var user = enumerableTwitts.Select(t => (Dictionary<string, object>)(t["user"]) as Dictionary<string, object>);
+            var tweetContent = enumerableTwitts.Select(t => (Dictionary<string, object>)(t["entities"]) as Dictionary<string, object>);
             //Creating datatable
             DataTable dtTweets = CreateDatatable();
             //Populating datatable
@@ -63,7 +63,7 @@ public class TwitterController : ApiController
             //Nested loop to iterate through the child elements
             foreach (var items in tweetContent)
             {
-                IEnumerable<dynamic> tweetURL = (IEnumerable<dynamic>)items["urls"];
+                IEnumerable<dynamic> tweetURL = (IEnumerable<dynamic>)items["urls"];                
                 foreach (var urlItems in tweetURL)
                 {
                     //Getting the actual image URL by hitting entities->expanded_url element
@@ -98,13 +98,13 @@ public class TwitterController : ApiController
             }
 
             //This is for workaround to handle response JSON problem
-            //Last 3-4 tweets are not returning entities->expanded_url which is responsible for getting the tweet image
-            //So, increased the target tweet count by 5, now discarding last 5 tweets 
-            dtTweets.Rows[dtTweets.Rows.Count - 1].Delete();
-            dtTweets.Rows[dtTweets.Rows.Count - 2].Delete();
-            dtTweets.Rows[dtTweets.Rows.Count - 3].Delete();
-            dtTweets.Rows[dtTweets.Rows.Count - 4].Delete();
-            dtTweets.Rows[dtTweets.Rows.Count - 5].Delete();
+            //Last 3-6 tweets are not returning entities->expanded_url which is responsible for getting the tweet image
+            //So, increased the target tweet count by 10 earlier, now discarding last 10 tweets 
+            for (int i = 1; i <= 10; i++)
+            {
+                dtTweets.Rows[dtTweets.Rows.Count - i].Delete();
+            }
+          
             dtTweets.AcceptChanges();
 
             return dtTweets;
@@ -128,9 +128,9 @@ public class TwitterController : ApiController
             request.Headers.Add("Authorization", "Basic " + customerInfo);
             request.Content = new StringContent("grant_type=client_credentials", Encoding.UTF8, "application/x-www-form-urlencoded");
 
-            HttpResponseMessage response = httpClient.SendAsync(request).GetAwaiter().GetResult();//Avoiding asynchronous call
+            HttpResponseMessage response = httpClient.SendAsync(request).GetAwaiter().GetResult();//Avoiding asynchronous call and allowing request to complete
 
-            string json = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();//Avoiding asynchronous call
+            string json = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();//Avoiding asynchronous call and allowing request to complete
             var serializer = new JavaScriptSerializer();
             dynamic item = serializer.Deserialize<object>(json);
             return (string)item["access_token"];
