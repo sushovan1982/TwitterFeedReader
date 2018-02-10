@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -92,8 +92,8 @@ public partial class Display : System.Web.UI.Page
         foreach (RepeaterItem items in rpttweet.Items)
         {
             Label lblUserName = (Label)items.FindControl("lblUserName");
-            Label lblScreenName = (Label)items.FindControl("lblUserName");
-            Label lblTweetDate = (Label)items.FindControl("lblUserName");
+            Label lblScreenName = (Label)items.FindControl("lblScreenName");
+            Label lblTweetDate = (Label)items.FindControl("lblTweetDate");
             Label lblTweetContent = (Label)items.FindControl("lblTweetContent");
             Label lblReTweetCount = (Label)items.FindControl("lblReTweetCount");
 
@@ -105,4 +105,3 @@ public partial class Display : System.Web.UI.Page
         }
     }
 }
-
