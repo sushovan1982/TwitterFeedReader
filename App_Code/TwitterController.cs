@@ -27,9 +27,9 @@ public class TwitterController : ApiController
 
             requestUserTimeline.Headers.Add("Authorization", "Bearer " + accessToken);
             var httpClient = new HttpClient();
-            HttpResponseMessage responseUserTimeLine = httpClient.SendAsync(requestUserTimeline).GetAwaiter().GetResult();//Avoiding asynchronous call and allowing request to complete
+            HttpResponseMessage responseUserTimeLine = httpClient.SendAsync(requestUserTimeline).GetAwaiter().GetResult();//Avoiding asynchronous call and allowing the request to complete
             var serializer = new JavaScriptSerializer();
-            dynamic json = serializer.Deserialize<object>(responseUserTimeLine.Content.ReadAsStringAsync().GetAwaiter().GetResult());//Avoiding asynchronous call and allowing request to complete
+            dynamic json = serializer.Deserialize<object>(responseUserTimeLine.Content.ReadAsStringAsync().GetAwaiter().GetResult());//Avoiding asynchronous call and allowing the request to complete
             var enumerableTwitts = (json as IEnumerable<dynamic>);
 
             if (enumerableTwitts == null)
@@ -128,9 +128,9 @@ public class TwitterController : ApiController
             request.Headers.Add("Authorization", "Basic " + customerInfo);
             request.Content = new StringContent("grant_type=client_credentials", Encoding.UTF8, "application/x-www-form-urlencoded");
 
-            HttpResponseMessage response = httpClient.SendAsync(request).GetAwaiter().GetResult();//Avoiding asynchronous call and allowing request to complete
+            HttpResponseMessage response = httpClient.SendAsync(request).GetAwaiter().GetResult();//Avoiding asynchronous call and allowing the request to complete
 
-            string json = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();//Avoiding asynchronous call and allowing request to complete
+            string json = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();//Avoiding asynchronous call and allowing the request to complete
             var serializer = new JavaScriptSerializer();
             dynamic item = serializer.Deserialize<object>(json);
             return (string)item["access_token"];
