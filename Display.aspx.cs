@@ -61,7 +61,6 @@ public partial class Display : System.Web.UI.Page
         //Calling Twitter API every 60 seconds (defined in design page) to get most recent 10 tweets, this is for auto refresh
         try
         {
-            //Calling Twitter API to get most recent 10 tweets during initial load
             CallGetTweets();
         }
         catch
