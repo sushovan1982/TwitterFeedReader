@@ -15,19 +15,7 @@ public partial class Display : System.Web.UI.Page
             try
             {
                 //Calling Twitter API to get most recent 10 tweets during initial load
-                TwitterController twitter = new TwitterController();
-                DataTable dtRepeater = twitter.GetTwitts("salesforce", 10);
-                if (dtRepeater != null)
-                {
-                    Session["Tweets"] = dtRepeater; //Storing the tweet datatable into session for filtering later during search
-                    rpttweet.DataSource = dtRepeater;
-                    rpttweet.DataBind();
-                }
-                else
-                {
-                    Session["Error"] = "No tweet found for user @salesforce";
-                    Response.Redirect("ErrorPage.aspx");
-                }
+                CallGetTweets();
             }
             catch
             {
@@ -69,13 +57,27 @@ public partial class Display : System.Web.UI.Page
 
     protected void tmrAutoRefresh_Tick(object sender, EventArgs e)
     {
+        txtSearch.Text = "";
         //Calling Twitter API every 60 seconds (defined in design page) to get most recent 10 tweets, this is for auto refresh
+        try
+        {
+            //Calling Twitter API to get most recent 10 tweets during initial load
+            CallGetTweets();
+        }
+        catch
+        {
+            Response.Redirect("ErrorPage.aspx");
+        }
+    }
+
+    private void CallGetTweets()
+    {
+        //Function to get tweets
         TwitterController twitter = new TwitterController();
         DataTable dtRepeater = twitter.GetTwitts("salesforce", 10);
-        txtSearch.Text = "";
         if (dtRepeater != null)
         {
-            Session["Tweets"] = dtRepeater;
+            Session["Tweets"] = dtRepeater; //Storing the tweet datatable into session for filtering later during search
             rpttweet.DataSource = dtRepeater;
             rpttweet.DataBind();
         }
