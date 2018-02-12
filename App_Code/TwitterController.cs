@@ -19,7 +19,7 @@ public class TwitterController : ApiController
             //Fetching access token for accessing Twitter API 
             accessToken = GetAccessToken();
             //This is for workaround to handle response JSON problem
-            //Last 3-6 tweets are not returning entities->expanded_url which is responsible for getting the tweet image
+            //Last 2-6 tweets were not returning entities->expanded_url consistantly which is responsible for getting the tweet image
             //So, increasing the target tweet count by 10, later last 10 tweets will be discarded
             count = count + 10;
             //GET request to Twitter API
@@ -66,11 +66,18 @@ public class TwitterController : ApiController
                 IEnumerable<dynamic> tweetURL = (IEnumerable<dynamic>)items["urls"];                
                 foreach (var urlItems in tweetURL)
                 {
-                    //Getting the actual image URL by hitting entities->expanded_url element
-                    string imgUrl = GetImage(urlItems["expanded_url"].ToString());
+                    if (counter < dtTweets.Rows.Count)
+                    {
+                        //Getting the actual image URL by hitting entities->expanded_url element
+                        string imgUrl = GetImage(urlItems["expanded_url"].ToString());
 
-                    dtTweets.Rows[counter]["TweetContent"] = imgUrl;
-                    counter++;
+                        dtTweets.Rows[counter]["TweetContent"] = imgUrl;
+                        counter++;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
 
@@ -98,13 +105,13 @@ public class TwitterController : ApiController
             }
 
             //This is for workaround to handle response JSON problem
-            //Last 3-6 tweets are not returning entities->expanded_url which is responsible for getting the tweet image
+            //Last 2-6 tweets were not returning entities->expanded_url consistantly which is responsible for getting the tweet image
             //So, increased the target tweet count by 10 earlier, now discarding last 10 tweets 
             for (int i = 1; i <= 10; i++)
             {
                 dtTweets.Rows[dtTweets.Rows.Count - i].Delete();
             }
-          
+
             dtTweets.AcceptChanges();
 
             return dtTweets;
