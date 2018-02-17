@@ -18,10 +18,7 @@ public class TwitterController : ApiController
         {
             //Fetching access token for accessing Twitter API 
             accessToken = GetAccessToken();
-            //This is for workaround to handle response JSON problem
-            //Last 2-6 tweets were not returning entities->expanded_url consistantly which is responsible for getting the tweet image
-            //So, increasing the target tweet count by 10, later last 10 tweets will be discarded
-            count = count + 10;
+
             //GET request to Twitter API
             var requestUserTimeline = new HttpRequestMessage(HttpMethod.Get, string.Format("https://api.twitter.com/1.1/statuses/user_timeline.json?count={0}&screen_name={1}&trim_user=0&exclude_replies=0", count, userName));
 
@@ -37,7 +34,7 @@ public class TwitterController : ApiController
                 return null;
             }
             //If IEnumerable received JSON object, filter it for each target fields
-            var tweetText = enumerableTwitts.Select(t => (string)(t["text"].ToString()));          
+            var tweetText = enumerableTwitts.Select(t => (string)(t["text"].ToString()));
             var retweetCount = enumerableTwitts.Select(t => (int)(t["retweet_count"]));
             var tweetDate = enumerableTwitts.Select(t => (string)(t["created_at"]));
             var user = enumerableTwitts.Select(t => (Dictionary<string, object>)(t["user"]) as Dictionary<string, object>);
@@ -63,7 +60,7 @@ public class TwitterController : ApiController
             //Nested loop to iterate through the child elements
             foreach (var items in tweetContent)
             {
-                IEnumerable<dynamic> tweetURL = (IEnumerable<dynamic>)items["urls"];                
+                IEnumerable<dynamic> tweetURL = (IEnumerable<dynamic>)items["urls"];
                 foreach (var urlItems in tweetURL)
                 {
                     if (counter < dtTweets.Rows.Count)
@@ -72,13 +69,13 @@ public class TwitterController : ApiController
                         string imgUrl = GetImage(urlItems["expanded_url"].ToString());
 
                         dtTweets.Rows[counter]["TweetContent"] = imgUrl;
-                        counter++;
                     }
                     else
                     {
                         break;
                     }
                 }
+                counter++;
             }
 
             counter = 0;
@@ -104,15 +101,14 @@ public class TwitterController : ApiController
                 counter++;
             }
 
-            //This is for workaround to handle response JSON problem
-            //Last 2-6 tweets were not returning entities->expanded_url consistantly which is responsible for getting the tweet image
-            //So, increased the target tweet count by 10 earlier, now discarding last 10 tweets 
-            for (int i = 1; i <= 10; i++)
+            //If image not returned by Twitter API response JSON, show NoImage.jpg
+            for (int i = 0; i < count; i++)
             {
-                dtTweets.Rows[dtTweets.Rows.Count - i].Delete();
+                if (String.IsNullOrEmpty(dtTweets.Rows[i]["TweetContent"].ToString()))
+                {
+                    dtTweets.Rows[i]["TweetContent"] = "~/Images/NoImage.jpg";
+                }
             }
-
-            dtTweets.AcceptChanges();
 
             return dtTweets;
         }
